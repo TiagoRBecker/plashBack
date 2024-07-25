@@ -11,19 +11,19 @@ export const storage = new Storage({
   projectId: process.env.GOOGLE_CLOUD_PROJECT_ID,
   credentials: {
     //@ts-ignore
-    private_key: process.env.GOOGLE_CLOUD_PRIVATE_KEY.replace(/\\n/g, '\n'),
+    private_key: process.env.GOOGLE_CLOUD_PRIVATE_KEY?.replace(/\\n/g, '\n'),
     client_email: process.env.GOOGLE_CLOUD_CLIENT_EMAIL,
   }
 });
-export const bucket = storage.bucket(process.env.BUCKET);
+export const bucket = storage.bucket("plash_bucket");
 
 export const GCLOUD = Multer({
   storage: new MulterGoogleCloudStorage({
-    bucket: process.env.BUCKET,
+    bucket:"plash_bucket",
     projectId: "lithe-lens-423414-q6",
     credentials: {
       //@ts-ignore
-      private_key: process.env.GOOGLE_CLOUD_PRIVATE_KEY.replace(/\\n/g, '\n'),
+      private_key: process.env.GOOGLE_CLOUD_PRIVATE_KEY?.replace(/\\n/g, '\n'),
       client_email: process.env.GOOGLE_CLOUD_CLIENT_EMAIL,
     } 
   }),
