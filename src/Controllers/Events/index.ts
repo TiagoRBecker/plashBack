@@ -29,7 +29,7 @@ class Events {
 
   async getEventID(req: Request, res: Response) {
     const { slug } = req.params;
-    console.log(slug);
+
     const eventId = await prisma?.eventsofMonth.findUnique({
       where: {
         id: Number(slug),
@@ -93,7 +93,7 @@ class AdminEvents {
   async getLastEvent(req: Request, res: Response) {
     try {
       const events = await prisma?.eventsofMonth.findMany({});
-      console.log(events);
+
       return res.status(200).json(events);
     } catch (error: unknown) {
       return this?.handleError(error, res);

@@ -171,12 +171,27 @@ try {
   }
   async editEmployee(req: Request, res: Response) {
     const { slug } = req.params;
-    const { name, email, profession, phone,avatar } = req.body;
-    const profile = req?.file as any;
-  
+    const { name, email, profession, phone,avatar} = req.body;
+    const newProfile = req?.file as any;
+    let newAvatar = avatar
 
     try {
-    
+      if (req.file) {
+       
+        
+        //@ts-ignore
+       
+          //@ts-ignore
+          const newC = newProfile.linkUrl.split("plash_bucket/");
+          const read = await bucket.file(newC[1]);
+          const expires = new Date();
+          expires.setFullYear(expires.getFullYear() + 2);
+          const [url] = await read.getSignedUrl({
+            action: "read",
+            expires: expires,
+          });
+          newAvatar = url;
+        
         const update = await prisma?.employee.update({
           where: {
             id: Number(slug),
@@ -186,12 +201,29 @@ try {
             email,
             profession,
             phone,
-            avatar: profile ? profile.linkUrl : avatar,
+            avatar: newAvatar,
           },
         });
         return res
           .status(200)
           .json({ message: "Colaborador editado com sucesso!" });
+      }else{
+        const update = await prisma?.employee.update({
+          where: {
+            id: Number(slug),
+          },
+          data: {
+            name,
+            email,
+            profession,
+            phone,
+            avatar: avatar,
+          },
+        });
+        return res
+          .status(200)
+          .json({ message: "Colaborador editado com sucesso!" });
+      }
      
     } catch (error) {
       console.log(error);
