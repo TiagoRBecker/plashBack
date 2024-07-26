@@ -45,7 +45,9 @@ class Employee {
             phone:true,
             commission:true,
             profession:true,
-            magazines:true
+            magazines:true,
+            dvl_employee:true,
+            availableForWithdrawal:true
 
           }
           
@@ -102,9 +104,8 @@ try {
       id: Number(slug),
     },
     include:{
-      dvl_employee:{
-        distinct:["name"]
-      },
+      dvl_employee:true,
+      
       magazines:true,
     }
    
@@ -125,18 +126,8 @@ try {
     const { name, email, password, profession, phone,commission } = req.body;
     const file = req.file as any;
   
-   const cover = file.linkUrl.split('plash_bucket/')
-   const read = await  bucket.file(cover[1]);
-   const expires = new Date();
-   expires.setFullYear(expires.getFullYear() + 2);
-   const [url] = await read.getSignedUrl({
-    action: 'read',
-    expires:expires
-    
-});
-
-
-    
+ 
+ 
     const chekingEmail = await prisma?.employee.findUnique({
       where: {
         email: email,
@@ -153,7 +144,7 @@ try {
           profession,
           phone,
           password,
-          avatar: url,
+          avatar: file.linkUrl,
           commission:Number(commission)
         },
       });
@@ -172,25 +163,17 @@ try {
   async editEmployee(req: Request, res: Response) {
     const { slug } = req.params;
     const { name, email, profession, phone,avatar} = req.body;
-    const newProfile = req?.file as any;
-    let newAvatar = avatar
+    const newProfile = req?.file  as any
+    
 
     try {
-      if (req.file) {
+    
        
         
         //@ts-ignore
        
           //@ts-ignore
-          const newC = newProfile.linkUrl.split("plash_bucket/");
-          const read = await bucket.file(newC[1]);
-          const expires = new Date();
-          expires.setFullYear(expires.getFullYear() + 2);
-          const [url] = await read.getSignedUrl({
-            action: "read",
-            expires: expires,
-          });
-          newAvatar = url;
+         
         
         const update = await prisma?.employee.update({
           where: {
@@ -201,29 +184,14 @@ try {
             email,
             profession,
             phone,
-            avatar: newAvatar,
+            avatar: newProfile ? newProfile.linkUrl  : avatar
           },
         });
         return res
           .status(200)
           .json({ message: "Colaborador editado com sucesso!" });
-      }else{
-        const update = await prisma?.employee.update({
-          where: {
-            id: Number(slug),
-          },
-          data: {
-            name,
-            email,
-            profession,
-            phone,
-            avatar: avatar,
-          },
-        });
-        return res
-          .status(200)
-          .json({ message: "Colaborador editado com sucesso!" });
-      }
+     
+          
      
     } catch (error) {
       console.log(error);
@@ -231,6 +199,7 @@ try {
     } finally {
       return this?.handleDisconnect();
     }
+      
  
   }
   async getEmployeeDvl(req: Request, res: Response) {
@@ -244,12 +213,24 @@ try {
           where: {
             id: Number(slug),
           },
-          include:{
-            employee:true
+          select:{
+            id:true,
+            name:true,
+            paidOut:true,
+            toReceive:true,
+            picture:true,
+            price:true,
+            createDate:true,
+            employee:{
+              select:{
+                id:true,
+                commission:true,
+              }
+            }
           }
          
         });
-         console.log(dvlEmployee)
+        
         return res
           .status(200)
           .json(dvlEmployee);
@@ -264,7 +245,7 @@ try {
   }
   async updateEmployeeCommissiom(req: Request, res: Response) {
     const { slug } = req.params;
-    const {pay} = req.body
+    const {pay,id} = req.body
  
   
     try {
@@ -280,10 +261,35 @@ try {
             paidOut: {
               decrement:  Number(pay),
             },
+          
           },
          
          
         });
+        const totalToReceive = await prisma?.dvls_Employee.aggregate({
+          _sum: {
+            toReceive: true,
+          },
+          where: {
+            id: Number(slug),
+           
+          },
+        });  
+       
+          await prisma?.employee.update({
+            where: {
+              id: Number(id),
+            },
+            data: {
+              availableForWithdrawal: {
+                increment:Number(totalToReceive?._sum.toReceive)
+              },
+            },
+          });
+        
+      
+    
+        
        
          
         return res

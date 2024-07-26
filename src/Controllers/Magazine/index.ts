@@ -208,7 +208,7 @@ class AdminMagazine {
   //Retorna todas as categorias
   async getAllMagazine(req: Request, res: Response) {
     const { name, author, page, company, take, volume, category } = req.query;
-   
+
     try {
       const totalTake = Number(take) || 8;
       const currentPage = Number(page) || 1;
@@ -338,15 +338,16 @@ class AdminMagazine {
           model: true,
         },
       });
-      const urlParts = magazine?.magazine_pdf.split("/");
-      //@ts-ignore
-      const fileName = urlParts[urlParts.length - 1];
-
-      const file = bucket.file(fileName);
-      const [url] = await file.getSignedUrl({
+      const newC = magazine?.magazine_pdf?.split("plash_bucket/") as any;
+      const read = await bucket.file(newC[1]);
+      const [url] = await read.getSignedUrl({
         action: "read",
         expires: Date.now() + 60 * 60 * 1000, // 1 hora
       });
+
+      //@ts-ignore
+      
+
       return res.status(200).json({ magazine, url });
     } catch (error) {
       return this?.handleError(error, res);
@@ -365,19 +366,12 @@ class AdminMagazine {
       volume,
       subCategory,
       model,
+      pdf,
     } = req.body;
     const slug = `${name}#vol${volume}`;
     const employes = JSON.parse(req.body.employes);
 
-    const { cover_file, pdf_file } = req.files as any;
-    const cover = cover_file[0].linkUrl.split("plash_bucket/");
-    const read = await bucket.file(cover[1]);
-    const expires = new Date();
-    expires.setFullYear(expires.getFullYear() + 2);
-    const [url] = await read.getSignedUrl({
-      action: "read",
-      expires: expires,
-    });
+    const cover_file = req.file as any;
 
     try {
       await prisma?.$transaction(async (prisma) => {
@@ -388,13 +382,13 @@ class AdminMagazine {
             company,
             name,
             description,
-            magazine_pdf: pdf_file[0].linkUrl,
+            magazine_pdf: pdf,
             price: Number(price),
             slug: slug,
             subCategory,
             model,
             volume,
-            cover: [url],
+            cover: [cover_file.linkUrl],
             categoryId: Number(categoryId),
           },
         });
@@ -445,105 +439,47 @@ class AdminMagazine {
       cover,
       pdf,
     } = req.body;
-    
+
     try {
       const employes = JSON.parse(req.body.employes);
       const slugHash = `${name}#vol${volume}`;
       //@ts-ignore
-      if (req.files.newCover || req.files.newPdf) {
-        let newCoverUrl = cover;
-        let newPdfUrl = pdf;
-        //@ts-ignore
-        if (req.files.newCover && req.files.newCover[0]) {
-          //@ts-ignore
-          const newC = req.files.newCover[0].linkUrl.split("plash_bucket/");
-          const read = await bucket.file(newC[1]);
-          const expires = new Date();
-          expires.setFullYear(expires.getFullYear() + 2);
-          const [url] = await read.getSignedUrl({
-            action: "read",
-            expires: expires,
-          });
-          newCoverUrl = url;
-        }
-        //@ts-ignore
-        if (req.files.newPdf && req.files.newPdf[0]) {
-          //@ts-ignore
-          newPdfUrl = req.files.newPdf[0].linkUrl;
-        }
+      const cover_file = req.file as any;
 
-        await prisma?.$transaction(async (prisma) => {
-          const updateMagazine = await prisma?.magazines.update({
-            where: {
-              id: Number(slug),
-            },
+      await prisma?.$transaction(async (prisma) => {
+        const updateMagazine = await prisma?.magazines.update({
+          where: {
+            id: Number(slug),
+          },
+          data: {
+            author,
+            company,
+            name,
+            description,
+            price: Number(price),
+            volume,
+            subCategory,
+            model,
+            slug: slugHash,
+            categoryId: Number(categoryId),
+            cover: cover_file ? [cover_file.linkUrl] : [cover],
+            magazine_pdf: pdf,
+          },
+        });
+        for (const employee of employes) {
+          const updateEmploye = await prisma.employee.update({
+            where: { id: employee.id },
             data: {
-              author,
-              company,
-              name,
-              description,
-              price: Number(price),
-              volume,
-              subCategory,
-              model,
-              slug: slugHash,
-              categoryId: Number(categoryId),
-              //@ts-ignore
-              cover: [newCoverUrl],
-              //@ts-ignore
-              magazine_pdf: newPdfUrl,
+              magazines: {
+                connect: { id: updateMagazine.id },
+              },
             },
           });
-          for (const employee of employes) {
-            const updateEmploye = await prisma.employee.update({
-              where: { id: employee.id },
-              data: {
-                magazines: {
-                  connect: { id: updateMagazine.id },
-                },
-              },
-            });
-          }
-          return res
-            .status(200)
-            .json({ message: "Revista atualizada com sucesso!" });
-        });
-      } else {
-        await prisma?.$transaction(async (prisma) => {
-          const updateMagazine = await prisma?.magazines.update({
-            where: {
-              id: Number(slug),
-            },
-            data: {
-              author,
-              company,
-              name,
-              description,
-              price: Number(price),
-              volume,
-              subCategory,
-              model,
-              slug: slugHash,
-              categoryId: Number(categoryId),
-              cover: [cover],
-              magazine_pdf: pdf,
-            },
-          });
-          for (const employee of employes) {
-            const updateEmploye = await prisma.employee.update({
-              where: { id: employee.id },
-              data: {
-                magazines: {
-                  connect: { id: updateMagazine.id },
-                },
-              },
-            });
-          }
-          return res
-            .status(200)
-            .json({ message: "Revista atualizada com sucesso!" });
-        });
-      }
+        }
+        return res
+          .status(200)
+          .json({ message: "Revista atualizada com sucesso!" });
+      });
     } catch (error) {
       console.log(error);
       return this.handleError(error, res);
@@ -592,6 +528,11 @@ class AdminMagazine {
       const deletMagazine = await prisma?.magazines.delete({
         where: {
           id: Number(id),
+        },
+        include: {
+          article: true,
+          employees: true,
+          Category: true,
         },
       });
       return res

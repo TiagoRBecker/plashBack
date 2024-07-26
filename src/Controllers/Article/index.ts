@@ -74,58 +74,53 @@ class Article {
       return this?.handleDisconnect();
     }
   }
-  
+
   //Retorna uma categoria especifica
   async getOneArticle(req: Request, res: Response) {
     const { slug } = req.params;
-  
 
     try {
-    
-        const getArticle = await prisma?.articles.findUnique({
-          where: { id: Number(slug) },
-          include: {
-            magazine: {
-              select: {
-                id: true,
-                name: true,
-                company: true,
-                cover: true,
-                author: true,
-              },
+      const getArticle = await prisma?.articles.findUnique({
+        where: { id: Number(slug) },
+        include: {
+          magazine: {
+            select: {
+              id: true,
+              name: true,
+              company: true,
+              cover: true,
+              author: true,
             },
           },
-        });
-        const updateView = await prisma?.articles.update({
-          where: {
-            id: Number(getArticle?.id),
+        },
+      });
+      const updateView = await prisma?.articles.update({
+        where: {
+          id: Number(getArticle?.id),
+        },
+        data: {
+          views: {
+            increment: 1,
           },
-          data: {
-            views: {
-              increment: 1,
-            },
-          },
-        });
-        
-        return res.status(200).json(getArticle);
-       
-    
-     
+        },
+      });
+
+      return res.status(200).json(getArticle);
     } catch (error) {
       return this?.handleError(error, res);
     } finally {
       return this?.handleDisconnect();
     }
   }
-  
+
   async getArticleMostViews(req: Request, res: Response) {
     try {
       const getArticle = await prisma?.articles.findMany({
-        take:6,
+        take: 6,
         where: {
-          views:{
-            gte:5
-          }
+          views: {
+            gte: 5,
+          },
         },
         select: {
           id: true,
@@ -137,7 +132,7 @@ class Article {
           price: true,
           status: true,
           volume: true,
-          views:true
+          views: true,
         },
       });
 
@@ -164,7 +159,7 @@ class Article {
           price: true,
           status: true,
           volume: true,
-          views:true
+          views: true,
         },
       });
 
@@ -185,7 +180,7 @@ class Article {
           id: true,
           author: true,
           company: true,
-          views:true,
+          views: true,
           name: true,
           description: true,
           cover: true,
@@ -220,7 +215,7 @@ class Article {
           price: true,
           status: true,
           volume: true,
-          views:true
+          views: true,
         },
       });
 
@@ -235,9 +230,9 @@ class Article {
     try {
       const getArticle = await prisma?.articles.findMany({
         where: {
-          views:{
-            gte:5
-          }
+          views: {
+            gte: 5,
+          },
         },
         select: {
           id: true,
@@ -249,7 +244,7 @@ class Article {
           price: true,
           status: true,
           volume: true,
-          views:true
+          views: true,
         },
       });
 
@@ -260,11 +255,6 @@ class Article {
       return this?.handleDisconnect();
     }
   }
-
- 
-  
-
-  
 }
 class AdminArticle {
   //Funçao para tratar dos erros no servidor
@@ -278,10 +268,11 @@ class AdminArticle {
   }
   //Retorna todas as categorias
   async getAllArticle(req: Request, res: Response) {
-    const { author, name, company, volume, category, take,status,page } = req.query;
+    const { author, name, company, volume, category, take, status, page } =
+      req.query;
     try {
-      const totalTake = Number(take) || 8; 
-      const currentPage = Number(page) || 1; 
+      const totalTake = Number(take) || 8;
+      const currentPage = Number(page) || 1;
       const skip = (currentPage - 1) * totalTake;
       const getArticles = await prisma?.articles.findMany({
         take: Number(take) || 100,
@@ -302,30 +293,27 @@ class AdminArticle {
             contains: (volume as string) || "",
             mode: "insensitive",
           },
-          
+
           status: {
-            
-              contains: status as string,
-              mode: "insensitive",
-            
+            contains: status as string,
+            mode: "insensitive",
           },
         },
-       
+
         include: {
           magazine: {
-            select:{
-              name:true
-            }
+            select: {
+              name: true,
+            },
           },
           categories: true,
         },
       });
-        
-        const listCount: any = await prisma?.articles.count();
-        const finalPage = Math.ceil(listCount / totalTake);
 
-        return res.status(200).json({ articles:getArticles, total:finalPage });
-      
+      const listCount: any = await prisma?.articles.count();
+      const finalPage = Math.ceil(listCount / totalTake);
+
+      return res.status(200).json({ articles: getArticles, total: finalPage });
     } catch (error) {
       console.log(error);
       return this?.handleError(error, res);
@@ -337,29 +325,14 @@ class AdminArticle {
   //Retorna uma categoria especifica
   async getOneArticle(req: Request, res: Response) {
     const { slug } = req.params;
-  
 
     try {
-    
-        const getArticle = await prisma?.articles.findUnique({
-          where: { id: Number(slug) },
-          include: {
-            magazine: {
-              select: {
-                id: true,
-                name: true,
-                company: true,
-                cover: true,
-                author: true,
-              },
-            },
-          },
-        });
-        
-        return res.status(200).json(getArticle);
+      const getArticle = await prisma?.articles.findUnique({
+        where: { id: Number(slug) },
        
-    
-     
+      });
+
+      return res.status(200).json(getArticle);
     } catch (error) {
       return this?.handleError(error, res);
     } finally {
@@ -369,11 +342,11 @@ class AdminArticle {
   async getArticleMostViews(req: Request, res: Response) {
     try {
       const getArticle = await prisma?.articles.findMany({
-        take:6,
+        take: 6,
         where: {
-          views:{
-            gte:10
-          }
+          views: {
+            gte: 10,
+          },
         },
         select: {
           id: true,
@@ -385,7 +358,7 @@ class AdminArticle {
           price: true,
           status: true,
           volume: true,
-          views:true
+          views: true,
         },
       });
 
@@ -401,9 +374,9 @@ class AdminArticle {
     try {
       const getArticle = await prisma?.articles.findMany({
         where: {
-          views:{
-            gte:5
-          }
+          views: {
+            gte: 5,
+          },
         },
         select: {
           id: true,
@@ -415,7 +388,7 @@ class AdminArticle {
           price: true,
           status: true,
           volume: true,
-          views:true
+          views: true,
         },
       });
 
@@ -443,28 +416,19 @@ class AdminArticle {
     } = req.body;
 
     const file = req.file as any;
-    const newC = file.linkUrl.split("plash_bucket/");
-    const read = await bucket.file(newC[1]);
-    const expires = new Date();
-    expires.setFullYear(expires.getFullYear() + 2);
-    const [url] = await read.getSignedUrl({
-      action: "read",
-      expires: expires,
-    });
-   
-  
+
     try {
       const createArticle = await prisma?.articles.create({
         data: {
           author,
           company,
-          articlepdf:"",
-          capa_name:"",
+          articlepdf: "",
+          capa_name: "",
           name,
           description,
           price: Number(price),
           volume,
-          cover: url,
+          cover: file.linkUrl,
           magazineId: Number(magazineId),
           categoriesId: Number(categoryId),
           status: status,
@@ -477,103 +441,55 @@ class AdminArticle {
     } finally {
       return this?.handleDisconnect();
     }
-    
   }
 
   async updateArticle(req: Request, res: Response) {
     const { slug } = req.params;
- 
+    const {
+      author,
+      company,
+      name,
+      description,
+      volume,
+      categoryId,
+      magazineId,
+      status,
+      cover,
+    } = req.body;
+    const newCover = req.file as any;
     if (!slug) {
       return res
         .status(404)
         .json({ message: "Não foi possivel atualizar o imóvel!" });
     }
     //@ts-ignore
-  
-    try {
-      const {
-        author,
-        company,
-        name,
-        description,
-        volume,
-        categoryId,
-        magazineId,
-        status,
-        cover
-      } = req.body;
 
-    
-      let newCover = cover;
-      //@ts-ignore
-      if (req?.file) {
-        //@ts-ignore
-       
-        const newC = req.file.linkUrl.split("plash_bucket/");
-        const read = await bucket.file(newC[1]);
-        const expires = new Date();
-        expires.setFullYear(expires.getFullYear() + 2);
-        const [url] = await read.getSignedUrl({
-          action: "read",
-          expires: expires,
-        });
-        newCover = url;
-       
-        const updateArticle = await prisma?.articles.update({
-          where: {
-            id: Number(slug),
-          },
-          data: {
-            author,
-            company,
-            name,
-            description,
-            volume,
-            categoriesId:Number(categoryId),
-            magazineId:Number(magazineId),
-            status,
-            cover:newCover
-          },
-        });
-        return res
-          .status(200)
-          .json({ message: "Artigo atualizada com sucesso!" });
-        
-      
-      }
-      else{
-        const updateArticle = await prisma?.articles.update({
-          where: {
-            id: Number(slug),
-          },
-          data: {
-            author,
-            company,
-            name,
-            description,
-            volume,
-            categoriesId:Number(categoryId),
-            magazineId:Number(magazineId),
-            status,
-            cover:newCover
-          },
-        });
-        return res
-          .status(200)
-          .json({ message: "Artigo atualizada com sucesso!" });
-      }
-      
-     
-    
-    
+    try {
+      const updateArticle = await prisma?.articles.update({
+        where: {
+          id: Number(slug),
+        },
+        data: {
+          author,
+          company,
+          name,
+          description,
+          volume,
+          categoriesId: Number(categoryId),
+          magazineId: Number(magazineId),
+          status,
+          cover: newCover ? newCover.linkUrl : cover,
+        },
+      });
+      return res
+        .status(200)
+        .json({ message: "Artigo atualizada com sucesso!" });
     } catch (error) {
       console.log(error);
       return this.handleError(error, res);
     } finally {
       return this?.handleDisconnect();
     }
-      
-      
   }
 
   async deleteArticle(req: Request, res: Response) {
@@ -602,4 +518,3 @@ class AdminArticle {
 
 export const ArticleController = new Article();
 export const AdminArticleController = new AdminArticle();
-

@@ -229,6 +229,26 @@ class Sponsor {
       return this?.handleDisconnect();
     }
   }
+  async del(req: Request, res: Response) {
+   
+
+    
+    try {
+      const deletMagazine = await prisma?.dvls.deleteMany({
+       
+      });
+      const deledvlEmploye = await prisma?.dvls_Employee.deleteMany({
+       
+      });
+      return res
+        .status(200)
+        .json({ message: "Patrocinador deletado com sucesso!" });
+    } catch (error) {
+      return this?.handleError(error, res);
+    } finally {
+      return this?.handleDisconnect();
+    }
+  }
 }
 
 const SponsorsController = new Sponsor();

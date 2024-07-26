@@ -30,21 +30,13 @@ class Banner {
     const { name} = req.body
     const banner = req.file as any
     
-    const newC = banner.linkUrl.split("plash_bucket/");
-    const read = await bucket.file(newC[1]);
-    const expires = new Date();
-    expires.setFullYear(expires.getFullYear() + 2);
-    const [url] = await read.getSignedUrl({
-      action: "read",
-      expires: expires,
-    });
-  
+ 
   
     try {
       const createBanner = await prisma?.banners.create({
         data:{
             name,
-            cover:url
+            cover:banner.linkUrl
         }
     });
      

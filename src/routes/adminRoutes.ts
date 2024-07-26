@@ -12,14 +12,15 @@ import AdminOrdersController from '../Controllers/Orders';
 import {AdminCategoriesController} from '../Controllers/Categories';
 import UserController from '../Controllers/User';
 import AdminControllerEventCover from '../Controllers/CoversOfMonth';
-import { GCLOUD } from '../utils/multerConfig';
+import { GCLOUD,upload } from '../utils/multerConfig';
+import {UploadPdf} from  "../Controllers/Upload/index"
 
 const router = Router();
 
 // Admin routes
 //Employees
-router.post("/create-employee",chekingTokenAdmin, GCLOUD.single("profile"), AdminEmployeeController.createEmployee);
-router.post("/employee-update/:slug",chekingTokenAdmin, GCLOUD.single("newProfile"), AdminEmployeeController.editEmployee);
+router.post("/create-employee",chekingTokenAdmin, upload.single("profile"), AdminEmployeeController.createEmployee);
+router.post("/employee-update/:slug",chekingTokenAdmin, upload.single("newProfile"), AdminEmployeeController.editEmployee);
 router.delete("/employee-delete",chekingTokenAdmin, AdminEmployeeController.deletEmployee);
 router.get("/employees",chekingTokenAdmin, AdminEmployeeController.getAllEmployees);
 router.get("/employee/:slug", AdminEmployeeController.getOneEmployee);
@@ -30,17 +31,18 @@ router.delete("/employee/delete", AdminEmployeeController.deletDvls);
 //         ###################################### ///
 
 //Magazines
-router.post("/create-magazine", GCLOUD.fields([{ name: "cover_file", maxCount: 1 }, { name: "pdf_file", maxCount: 1 }]), AdminMagazineController.createMagazine);
-router.post("/update-magazine/:slug",chekingTokenAdmin, GCLOUD.fields([{ name: "newCover", maxCount: 1 }, { name: "newPdf", maxCount: 1 }]), AdminMagazineController.updateMagazine);
+router.post("/create-magazine", upload.single("cover_file"), AdminMagazineController.createMagazine);
+router.post("/update-magazine/:slug",chekingTokenAdmin, upload.single("newCover"), AdminMagazineController.updateMagazine);
 router.delete("/delet-magazine",chekingTokenAdmin, AdminMagazineController.deleteMagazine);
 router.post("/removeEmplooyeMagazine",chekingTokenAdmin, AdminMagazineController.deleteEmployeeMagazine);
 router.get("/magazines",chekingTokenAdmin, AdminMagazineController.getAllMagazine);
 router.get("/magazine/:slug",chekingTokenAdmin, AdminMagazineController.getMagazineEdit);
+router.post("/upload/pdf", GCLOUD.single("pdf"), UploadPdf);
 //         ###################################### ///
 
 //Articles
-router.post("/create-article",chekingTokenAdmin, GCLOUD.single("cover_file"), AdminArticleController.createArticle);
-router.post("/update-article/:slug",chekingTokenAdmin, GCLOUD.single("newCover"), AdminArticleController.updateArticle);
+router.post("/create-article",chekingTokenAdmin, upload.single("cover_file"), AdminArticleController.createArticle);
+router.post("/update-article/:slug",chekingTokenAdmin, upload.single("newCover"), AdminArticleController.updateArticle);
 router.delete("/delet-article",chekingTokenAdmin, AdminArticleController.deleteArticle);
 router.get("/articles", chekingTokenAdmin,AdminArticleController.getAllArticle);
 router.get("/article/:slug", chekingTokenAdmin,AdminArticleController.getOneArticle);
@@ -80,14 +82,14 @@ router.post("/user/finance/:slug",chekingTokenAdmin, UserController.updateDvlUse
 //Sponsors
 router.get("/sponsor/:slug",chekingTokenAdmin, AdminSponsorController.getOneSponsor);
 router.get("/sponsors",chekingTokenAdmin, AdminSponsorController.getAllSponsors);
-router.post("/sponsor-create",chekingTokenAdmin, GCLOUD.single("file"), AdminSponsorController.createSponsor);
-router.post("/sponsor/edit/:slug",chekingTokenAdmin, GCLOUD.single("newCover"), AdminSponsorController.updateSponsor);
+router.post("/sponsor-create",chekingTokenAdmin, upload.single("file"), AdminSponsorController.createSponsor);
+router.post("/sponsor/edit/:slug",chekingTokenAdmin, upload.single("newCover"), AdminSponsorController.updateSponsor);
 router.delete("/sponsor/delete/:slug",chekingTokenAdmin, AdminSponsorController.deleteSponsor);
 //         ###################################### ///
 
 //Events of Month
-router.post("/create-event",chekingTokenAdmin, GCLOUD.fields([{ name: "banner", maxCount: 1 }, { name: "cover", maxCount: 1 }]), AdminEventController.createEvent);
-router.post("/update-event/:slug",chekingTokenAdmin, GCLOUD.fields([{ name: "newBanner", maxCount: 1 }, { name: "newCover", maxCount: 1 }]), AdminEventController.updateEvent);
+router.post("/create-event",chekingTokenAdmin, upload.fields([{ name: "banner", maxCount: 1 }, { name: "cover", maxCount: 1 }]), AdminEventController.createEvent);
+router.post("/update-event/:slug",chekingTokenAdmin, upload.fields([{ name: "newBanner", maxCount: 1 }, { name: "newCover", maxCount: 1 }]), AdminEventController.updateEvent);
 router.post("/removeSponsorEvent",chekingTokenAdmin,AdminEventController.deleteSponsorEvent)
 router.delete("/events/delet/:slug",chekingTokenAdmin, AdminEventController.deletEvent);
 router.get("/events", chekingTokenAdmin,AdminEventController.getAllEvents);
@@ -101,7 +103,7 @@ router.delete("/delet-event-cover/:slug", chekingTokenAdmin,AdminControllerEvent
 //         ###################################### ///
 
 //Banners
-router.post("/create-banners",chekingTokenAdmin,GCLOUD.single("banner"), AdminBannerController.createBanner);
+router.post("/create-banners",chekingTokenAdmin,upload.single("banner"), AdminBannerController.createBanner);
 router.delete("/delet-banners",chekingTokenAdmin, AdminBannerController.deletBanner);
 
 export default router;

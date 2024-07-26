@@ -4,14 +4,14 @@ export const createDvlsForCollaborators = async(magazines:any)=> {
     
     for (const magazine of magazines) {
         for (const employee of magazine.employees) {
-          console.log(Number(magazine.price * employee.commission))
+    
           
             const createdDvl = await prisma?.dvls_Employee.create({
                 data: {
                     name: magazine.name,
                     price: magazine.price,
                     picture: magazine.cover[0],
-                    paidOut: Number(magazine.price * employee.commission),
+                    paidOut: Math.round(Number(magazine.price * employee.commission) * 100) / 100,
                     toReceive: 0,
                     employee: { connect: { id: employee.id } },
                 },

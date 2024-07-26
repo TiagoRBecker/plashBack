@@ -26,12 +26,13 @@ class DVL {
       
     
         const dvls = await prisma?.dvls.findMany({
-          distinct:["name","price"],
+       
+          
           take: totalTake,
           skip: skip,
           where: {
-            paidOut: {
-              gte: Number(price) || 0,
+            paidOut:{
+              gt:0
             },
             name: {
               contains: (name as string) || "",
@@ -42,9 +43,7 @@ class DVL {
     
         const listCount = await prisma?.dvls.count({
           where: {
-            paidOut: {
-              gte: Number(price) || 0,
-            },
+            
             name: {
               contains: (name as string) || "",
               mode: "insensitive",
@@ -106,9 +105,9 @@ class DVL {
 
     try {
       const dvl = await prisma?.dvls.findFirst({
-        distinct: ["name", "price"],
+       
         where: {
-          name: slug,
+          id: Number(slug),
         },
       });
 
@@ -143,7 +142,7 @@ class DVL {
   //Atualiza uma categoria especifica
   async updateDvl(req: Request, res: Response) {
     const { slug } = req.params;
-    const { pay, price } = req.body;
+    const { pay } = req.body;
 
     if (!slug) {
       return res
@@ -155,8 +154,8 @@ class DVL {
       // Atualizar os dvls correspondentes
       const updatedDvls = await prisma?.dvls.updateMany({
         where: {
-          name: slug,
-          price: Number(price),
+          id:Number(slug),
+         
         },
         data: {
           toReceive: {
@@ -174,8 +173,8 @@ class DVL {
           toReceive: true,
         },
         where: {
-          name: slug,
-          price: Number(price),
+          id: Number(slug),
+         
         },
       });  
      
@@ -186,12 +185,15 @@ class DVL {
           where: {
             dvlClient: {
               some: {
-                name: slug,
-                price: Number(price),
+                id: Number(slug),
+                
               },
             },
           },
         });
+       
+       
+
 
         // Iterar pelos usuários e atualizar o availableForWithdrawal
         await Promise.all(
@@ -201,7 +203,9 @@ class DVL {
                 id: user.id,
               },
               data: {
-                availableForWithdrawal: totalToReceive?._sum.toReceive,
+                availableForWithdrawal: {
+                  increment:Number(totalToReceive?._sum.toReceive)
+                },
               },
             });
           })

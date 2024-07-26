@@ -65,6 +65,7 @@ model employee {
   phone        String
   commission   Float
   avatar       String?
+   availableForWithdrawal Float           @default(0)
   createDate   DateTime        @default(now())
   upDateDate   DateTime        @default(now())
   dvl_employee dvls_Employee[] @relation("dvls_EmployeeToemployee")
@@ -154,7 +155,7 @@ model dvls_Employee {
   price      Int?
   picture    String?
   paidOut    Float
-  toReceive  Int
+  toReceive  Float
   createDate DateTime   @default(now())
   upDateDate DateTime   @default(now())
   employee   employee[] @relation("dvls_EmployeeToemployee")
