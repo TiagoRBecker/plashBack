@@ -172,7 +172,7 @@ try {
           email,
           profession,
           phone,
-          password,
+          password:hash,
           avatar: file.linkUrl,
           commission:Number(commission)
         },
