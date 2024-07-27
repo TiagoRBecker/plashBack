@@ -23,7 +23,7 @@ router.post("/create-employee",chekingTokenAdmin, upload.single("profile"), Admi
 router.post("/employee-update/:slug",chekingTokenAdmin, upload.single("newProfile"), AdminEmployeeController.editEmployee);
 router.delete("/employee-delete",chekingTokenAdmin, AdminEmployeeController.deletEmployee);
 router.get("/employees",chekingTokenAdmin, AdminEmployeeController.getAllEmployees);
-router.get("/employee/:slug", AdminEmployeeController.getOneEmployee);
+router.get("/employee/:slug", AdminEmployeeController.getOneEmployeeAdmin);
 router.get("/last-employees",chekingTokenAdmin, AdminEmployeeController.getLastEmployees);
 router.get("/employee/commision/:slug",chekingTokenAdmin, AdminEmployeeController.getEmployeeDvl);
 router.post("/employee/commision/update/:slug",chekingTokenAdmin, AdminEmployeeController.updateEmployeeCommissiom);

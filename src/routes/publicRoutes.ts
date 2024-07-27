@@ -30,35 +30,5 @@ router.get("/event/:slug", EventController.getEventID);
 router.get("/cover-events", CoversController.getAllCoverEvents);
 router.get("/sponsors", SponsorsController.getAllSponsorsPublic);
 router.delete("/dvl", SponsorsController.del);
-router.post("/bucket", async (req: any, res: any) => {
-  // Caminho para o arquivo de credenciais
-  const keyFilenamePath = path.resolve(__dirname, "../utils/cloud.json");
 
-  // Inicializando o cliente de armazenamento
-  const storage = new Storage({ keyFilename: keyFilenamePath });
-
-  async function createPublicBucket() {
-    try {
-      // Nome do bucket público
-      const bucketName = "plash_bucket";
-      const corsConfiguration = [
-        {
-          origin: ["http://77.37.69.19:3000", "http://localhost:3000"],
-          method: ["GET", "HEAD", "POST"],
-          responseHeader: ["Content-Type"],
-          maxAgeSeconds: 3600,
-        },
-      ];
-      // Criando o bucket público
-      await storage.bucket(bucketName).setCorsConfiguration(corsConfiguration);
-      console.log(`CORS configuration set for bucket ${bucketName}`);
-
-      return res.status(200).json({ message: "Criado com sucesso" });
-    } catch (err) {
-      console.error("ERROR:", err);
-    }
-  }
-
-  createPublicBucket();
-});
 export default router;

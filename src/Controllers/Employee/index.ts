@@ -1,6 +1,6 @@
 import { Response, Request } from "express";
 import prisma from "../../server/prisma";
-import { bucket } from "../../utils/multerConfig";
+import bcrypt from "bcrypt";
 class Employee {
   //Funçao para tratar dos erros no servidor
   private handleError(error: any, res: Response) {
@@ -96,7 +96,7 @@ class Employee {
       return this?.handleDisconnect();
     }
   }
-  async getOneEmployee(req: Request, res: Response) {
+  async getOneEmployeeAdmin(req: Request, res: Response) {
      const {slug} = req.params
 try {
   const employeeWithDvls = await prisma?.employee.findUnique({
@@ -122,6 +122,34 @@ try {
     
     
   }
+  async getOneEmployee(req: Request, res: Response) {
+     const id = req.user.id
+try {
+ const employeeWithDvls = await prisma?.employee.findUnique({
+   where: {
+     id: Number(id),
+   },
+   select:{
+    id:true,
+    name:true,
+    avatar:true,
+    availableForWithdrawal:true,
+    dvl_employee:true,
+   }
+  
+   
+ });
+ return res
+     .status(200)
+     .json(employeeWithDvls);
+} catch (error) {
+ return this?.handleError(error, res);
+} finally {
+ return this?.handleDisconnect();
+}
+   
+   
+ }
   async createEmployee(req: Request, res: Response, next: any) {
     const { name, email, password, profession, phone,commission } = req.body;
     const file = req.file as any;
@@ -137,6 +165,7 @@ try {
       return res.status(400).json({ message: "E-mail já cadastrado!" });
     }
     try {
+      const hash = await bcrypt.hash(password, Number(process.env.SALT));
       const create = await prisma?.employee.create({
         data: {
           name,

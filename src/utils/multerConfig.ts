@@ -11,12 +11,12 @@ export const storage = new Storage({
   //Troque para o seu arquivo de credenciais google
   keyFilename: keyFilenamePath,
 });
-export const bucket = storage.bucket(process.env.BUCKET);
+export const bucket = storage.bucket("plash_bucket");
 export const bucketPublic = storage.bucket("public-plash-bucket")
 export const GCLOUD = Multer({
   storage: new MulterGoogleCloudStorage({
-    bucket: process.env.BUCKET,
-    projectId: process.env.PROJECTID,
+    bucket: "plas_bucket",
+    projectId: 'lithe-lens-423414-q6',
     keyFilename: keyFilenamePath,
     
   }),

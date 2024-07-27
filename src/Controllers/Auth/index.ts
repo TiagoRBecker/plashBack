@@ -31,7 +31,7 @@ class Auth {
 
     try {
       const hash = await bcrypt.hash(password, Number(process.env.SALT));
-      const chekingEmail = await prisma?.users.findUnique({
+      const chekingEmail = await prisma?.employee.findUnique({
         where: {
           email: email,
         },
@@ -197,6 +197,65 @@ class Auth {
       return this?.handleDisconnect()
     }
     
+  }
+  async authenticationEmployee(req: Request, res: Response) {
+    const { credentials } = req.body;
+ 
+    const employee = await prisma?.employee.findUnique({
+      where: {
+        email: credentials.email,
+      },
+    });
+  
+    if (!employee) {
+      return res
+        .status(404)
+        .json({ message: "E-mail não cadastrado no sistema!" });
+    }
+    try {
+      const match = await bcrypt.compare(credentials.password, employee?.password as string);
+     
+      if (!match) {
+        return res.status(401).json({ message: "E-mail ou senha invalidos" });
+      }
+        
+      if (employee) {
+        const token = jwt.sign(
+          {
+            id: employee?.id,
+            crsfToken: credentials.csrfToken,
+          },
+          process.env.SECRET as string,
+          { expiresIn: "1d" }
+        );
+  
+        const saveToken = await prisma?.users.update({
+          where: {
+            email: credentials.email,
+          },
+          data: {
+            crsfToken: token,
+          },
+        });
+        return res.status(200).json({
+          id: employee.id,
+          name: employee.name,
+          email: employee.email,
+          profission: employee.profession,
+          avatar:employee.avatar,
+          availableForWithdrawal:employee.availableForWithdrawal,
+          accessToken:token,
+        });
+      } else {
+        return res.status(404).json({ message: "E-mail ou senha invalidos" });
+      }
+    } catch (error) {
+      return this?.handleError(error,res)
+    }
+    finally{
+      return this?.handleDisconnect()
+    }
+  
   }
 }
 const AuthControllers = new Auth();
