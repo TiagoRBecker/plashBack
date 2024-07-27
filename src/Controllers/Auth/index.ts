@@ -198,64 +198,55 @@ class Auth {
     }
     
   }
-  async authenticationEmployee(req: Request, res: Response) {
-    const { credentials } = req.body;
- 
-    const employee = await prisma?.employee.findUnique({
-      where: {
-        email: credentials.email,
-      },
-    });
-  
-    if (!employee) {
-      return res
-        .status(404)
-        .json({ message: "E-mail não cadastrado no sistema!" });
-    }
-    try {
-      const match = await bcrypt.compare(credentials.password, employee?.password as string);
-     
-      if (!match) {
-        return res.status(401).json({ message: "E-mail ou senha invalidos" });
-      }
-        
-      if (employee) {
-        const token = jwt.sign(
-          {
-            id: employee?.id,
-            crsfToken: credentials.csrfToken,
-          },
-          process.env.SECRET as string,
-          { expiresIn: "1d" }
-        );
-  
-        const saveToken = await prisma?.users.update({
+
+    async authenticationEmployee(req: Request, res: Response) {
+      const { credentials } = req.body;
+      
+      const employee = await prisma?.employee.findUnique({
           where: {
-            email: credentials.email,
+              email: credentials.email,
           },
-          data: {
-            crsfToken: token,
-          },
-        });
-        return res.status(200).json({
-          id: employee.id,
-          name: employee.name,
-          email: employee.email,
-          profission: employee.profession,
-          avatar:employee.avatar,
-          availableForWithdrawal:employee.availableForWithdrawal,
-          accessToken:token,
-        });
-      } else {
-        return res.status(404).json({ message: "E-mail ou senha invalidos" });
+      });
+      
+      if (!employee) {
+          return res
+              .status(404)
+              .json({ message: "E-mail não cadastrado no sistema!" });
       }
-    } catch (error) {
-      return this?.handleError(error,res)
-    }
-    finally{
-      return this?.handleDisconnect()
-    }
   
+      try {
+          const match = await bcrypt.compare(credentials.password as string, employee.password);
+          
+          if (!match) {
+              return res.status(401).json({ message: "E-mail ou senha inválidos" });
+          }
+          
+          const token = jwt.sign(
+              {
+                  id: employee.id,
+                  crsfToken: credentials.csrfToken,
+              },
+              process.env.SECRET as string,
+              { expiresIn: "1d" }
+          );
+          
+        
+          
+          return res.status(200).json({
+              id: employee.id,
+              name: employee.name,
+              email: employee.email,
+              profession: employee.profession,
+              avatar: employee.avatar,
+              availableForWithdrawal: employee.availableForWithdrawal,
+              accessToken: token,
+          });
+      } catch (error) {
+          console.error('Erro durante a autenticação:', error);
+          return this?.handleError(error,res);
+      } finally {
+          return this?.handleDisconnect()
+      }
   }
 }
 const AuthControllers = new Auth();
